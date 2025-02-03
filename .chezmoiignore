@@ -1,0 +1,6 @@
+.DS_Store
+.gitignore
+README.md
+Brewfile
+setup.sh
+

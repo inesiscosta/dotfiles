@@ -1,0 +1,28 @@
+#!/bin/bash
+set -e
+
+touch $HOME/.hushlogin
+
+if [ ! -d "$HOME/.gnupg" ] || [ -z "$(ls -A $HOME/.gnupg)" ]; then
+  eval $(op signin)
+  TMP_DIR=$(mktemp -d)
+
+  op document get "GPG Private Keys" > "$TMP_DIR/privatekeys.asc"
+  op document get "GPG Public Keys" > "$TMP_DIR/pubkeys.asc"
+  op document get "GPG TrustDB" > "$TMP_DIR/trust.txt"
+
+  gpg --import "$TMP_DIR/privatekeys.asc"
+  gpg --import "$TMP_DIR/pubkeys.asc"
+  gpg --import-ownertrust "$TMP_DIR/trust.txt"
+
+  op document delete "GPG Private Keys"
+  op document delete "GPG Public Keys"
+  op document delete "GPG TrustDB"
+  rm -rf "$TMP_DIR"
+fi
+
+(crontab -l 2>/dev/null; echo "0 2 * * * /bin/bash -l -c 'brew update && brew upgrade && brew cleanup'") | crontab -
+brew update
+brew bundle --file={{ .chezmoi.sourceDir }}/Brewfile
+brew upgrade
+
