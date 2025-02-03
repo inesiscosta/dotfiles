@@ -1,0 +1,64 @@
+# History Settings
+HISTFILE=$HOME/.zsh_history                           # File where the command history is saved
+HISTSIZE=5000                                         # Number of commands to remember in the command history
+SAVEHIST=5000                                         # Number of history entries to save to the history file
+HISTDUP=erase                                         # Erase duplicates in the history
+HIST_STAMPS="dd/mm/yyyy"                              # Display timestamps in history in the defined format
+setopt appendhistory                                  # Append new history items to the history file
+setopt sharehistory                                   # Share history between all sessions
+setopt incappendhistory                               # Append history incrementally (as commands are typed)
+setopt hist_ignore_all_dups                           # Ignore duplicate commands in the history
+setopt hist_save_no_dups                              # Do not save duplicate commands in the history
+setopt hist_ignore_dups                               # Ignore duplicate commands in the history
+setopt hist_find_no_dups                              # Do not display duplicates when searching the history
+
+autoload -U colors && colors                          # Load color definitions for prompt
+autoload -Uz vcs_info                                 # Load version control system info
+
+# Prompt
+precmd() {
+  PROMPT="%(?:%{$fg_bold[green]%}%1{➜%} :%{$fg_bold[red]%}%1{➜%} ) %{$fg[cyan]%}%c%{$reset_color%} $(git_prompt_info)"
+}
+
+ZSH_THEME_GIT_PROMPT_PREFIX="%{$fg_bold[blue]%}git:(%{$fg[red]%}"  # Prefix for git info in prompt
+ZSH_THEME_GIT_PROMPT_SUFFIX="%{$reset_color%} "                    # Suffix for git info in prompt
+ZSH_THEME_GIT_PROMPT_DIRTY="%{$fg[blue]%}) %{$fg[yellow]%}%1{✗%}"  # Indicator for dirty state
+ZSH_THEME_GIT_PROMPT_CLEAN="%{$fg[blue]%})"                        # Indicator for clean state
+
+git_prompt_info() {
+  if git rev-parse --is-inside-work-tree &> /dev/null; then
+    local branch=$(git symbolic-ref --short HEAD 2> /dev/null)
+    if [[ -n $(git status --porcelain) ]]; then
+      echo "${ZSH_THEME_GIT_PROMPT_PREFIX}${branch}${ZSH_THEME_GIT_PROMPT_DIRTY}${ZSH_THEME_GIT_PROMPT_SUFFIX}"
+    else
+      echo "${ZSH_THEME_GIT_PROMPT_PREFIX}${branch}${ZSH_THEME_GIT_PROMPT_CLEAN}${ZSH_THEME_GIT_PROMPT_SUFFIX}"
+    fi
+  fi
+}
+
+# Case insensitive completion
+zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
+
+# Enable zsh-autosuggestions plugin
+source $(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+
+export GPG_TTY=$(tty)                                 # Export GPG settings
+
+# Aliases
+alias cat='bat'
+alias pip='pip3'
+alias gcc='gcc-14'
+alias g++='g++-14'
+alias python='python3'
+alias ls='ls --color'                                 # Enable color output for ls
+alias tmux='tmux -2'                                  # Use tmux with 256-color support
+eval "$(zoxide init --cmd cd zsh)"                    # Mapping zoxide's z command to cd
+
+# Preferred editor for local and remote sessions
+if [[ -n $SSH_CONNECTION ]]; then
+  export EDITOR='vim'                                 # Use Vim in remote sessions
+else
+  export EDITOR='nvim'                                # Use Neovim in local sessions
+fi
+
+# Note to future self configure fzf and bat (for fzf and git diff).

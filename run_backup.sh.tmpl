@@ -1,0 +1,39 @@
+#!/bin/bash
+set -e
+eval $(op signin)
+TMP_DIR=$(mktemp -d)
+
+gpg -a --export >"$TMP_DIR/pubkeys.asc"
+gpg -a --export-secret-keys >"$TMP_DIR/privatekeys.asc"
+gpg --export-ownertrust >"$TMP_DIR/trust.txt"
+
+update_or_create() {
+    local doc_name="$1"
+    local file_path="$2"
+    if op document get "$doc_name" >/dev/null 2>&1; then
+        op document edit "$doc_name" "$file_path" >/dev/null 2>&1
+    else
+        op document create "$file_path" --title "$doc_name" >/dev/null 2>&1
+    fi
+}
+
+update_or_create "GPG Private Keys" "$TMP_DIR/privatekeys.asc"
+update_or_create "GPG Public Keys" "$TMP_DIR/pubkeys.asc"
+update_or_create "GPG TrustDB" "$TMP_DIR/trust.txt"
+
+# Clean up the temporary files
+rm -rf "$TMP_DIR"
+
+BrewfilePath="{{ .chezmoi.sourceDir }}/Brewfile"
+brew bundle dump --file="$BrewfilePath" --force
+sed -i '' '/^vscode/d' "$BrewfilePath"
+
+DEV_DIR="$HOME/Developer"
+ZIP_PATH="$HOME/Documents/dev_backup.zip"
+cd "$DEV_DIR"
+zip -r "$ZIP_PATH" .
+
+if [ -d "$HOME/Library/Mobile Documents/com~apple~CloudDocs/Documents" ]; then
+  mv "$ZIP_PATH" "$HOME/Library/Mobile Documents/com~apple~CloudDocs/Documents/dev_backup.zip"
+fi
+
