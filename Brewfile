@@ -19,6 +19,7 @@ brew "telnet"
 brew "tmux"
 brew "tree"
 brew "zoxide"
+brew "zsh-autosuggestions"
 
 # Casks
 cask "1password"
@@ -45,5 +46,3 @@ mas "Goodnotes", id: 1444383602
 mas "Spark Desktop", id: 6445813049
 mas "Xcode", id: 497799835
 
-# Oh My Zsh Plugins
-brew "zsh-autosuggestions"
