@@ -43,6 +43,7 @@ zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
 source $(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 
 export GPG_TTY=$(tty)                                 # Export GPG settings
+HOMEBREW_BUNDLE_DUMP_NO_VSCODE=1                      # Don't include VSCode extensions when dumping.
 
 # Aliases
 alias cat='bat'
@@ -61,4 +62,3 @@ else
   export EDITOR='nvim'                                # Use Neovim in local sessions
 fi
 
-# Note to future self configure fzf and bat (for fzf and git diff).

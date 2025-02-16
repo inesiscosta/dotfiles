@@ -1,6 +1,7 @@
 # Brewfile - brew bundle
 
 # Homebrew Packages
+brew "bat"
 brew "clang-format"
 brew "coreutils"
 brew "fzf"
@@ -13,6 +14,7 @@ brew "make"
 brew "mas"
 brew "neovim"
 brew "node"
+brew "openjdk"
 brew "rust"
 brew "stow"
 brew "telnet"
