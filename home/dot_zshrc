@@ -61,4 +61,3 @@ if [[ -n $SSH_CONNECTION ]]; then
 else
   export EDITOR='nvim'                                # Use Neovim in local sessions
 fi
-
