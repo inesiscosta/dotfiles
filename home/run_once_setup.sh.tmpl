@@ -1,8 +1,11 @@
 #!/bin/bash
-set -e
+sudo -v                                                                                                                   # asks for sudo password upfront
+while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &                                           # keep alive: update sudo time stamp until the script has finished
 
+set -e
 touch $HOME/.hushlogin
 
+# Restore GPG Secrets from 1Password
 if [ ! -d "$HOME/.gnupg" ] || [ -z "$(ls -A $HOME/.gnupg)" ]; then
   eval $(op signin)
   TMP_DIR=$(mktemp -d)
@@ -21,8 +24,108 @@ if [ ! -d "$HOME/.gnupg" ] || [ -z "$(ls -A $HOME/.gnupg)" ]; then
   rm -rf "$TMP_DIR"
 fi
 
-(crontab -l 2>/dev/null; echo "0 2 * * * /bin/bash -l -c 'brew update && brew upgrade && brew cleanup'") | crontab -
-brew update
-brew bundle --file={{ .chezmoi.sourceDir }}/../Brewfile
-brew upgrade
+# Create Cron Job to Run Brew Upgrade and Update every 14 days and install the formulae and casks in the saved Brewfile.
+(crontab -l 2>/dev/null; echo "0 2 * * * /bin/bash -l -c 'brew update && brew upgrade && brew cleanup'") | crontab - >/dev/null 2>&1
+brew update >/dev/null 2>&1
+brew bundle --file={{ .chezmoi.sourceDir }}/../Brewfile --quiet >/dev/null 2>&1
+brew upgrade >/dev/null 2>&1
 
+# macOS config
+{{- if eq .chezmoi.os "darwin" -}}
+
+# General settings
+sudo /usr/libexec/ApplicationFirewall/socketfilterfw --setglobalstate on                                                  # turn on firewall
+sudo scutil --set ComputerName "Inês Costa MacBook Air"                                                                   # change computer name
+sudo scutil --set HostName "Inês Costa MacBook Air"                                                                       # change host name
+sudo scutil --set LocalHostName "inesiscosta-macbook"                                                                     # change local host name
+sudo pmset -a lowpowermode 0                                                                                              # low power mode never
+defaults write com.apple.LaunchServices "LSQuarantine" -bool "false"                                                      # disable app quarantine
+defaults write com.apple.BluetoothAudioAgent "Apple Bitpool Min (editable)" -int 40                                       # increase Bluetooth sound quality
+
+# Language and region settings
+defaults write NSGlobalDomain AppleLanguages -array "en" "pt-PT"                                                          # set languages
+defaults write NSGlobalDomain AppleLocale -string "pt_PT@currency=EUR"                                                    # set locale and currency
+defaults write NSGlobalDomain AppleMeasurementUnits -string "Centimeters"                                                 # set measurement units
+defaults write NSGlobalDomain AppleMetricUnits -bool true                                                                 # set metric units
+
+# Time and Date settings
+defaults write NSGlobalDomain AppleLocale -string "pt_PT"                                                                 # set country as Portugal
+defaults write NSGlobalDomain AppleICUForce24HourTime -bool true                                                          # 24-hour time format
+defaults write com.apple.menuextra.clock "ShowAMPM" -bool "false"                                                         # remove AM/PM from time display
+defaults write NSGlobalDomain AppleFirstWeekday -dict gregorian 2                                                         # set Monday as first weekday
+defaults write NSGlobalDomain AppleICUDateFormatStrings -dict 1 "dd-MM-yyyy"                                              # date format
+defaults write NSGlobalDomain AppleICUNumberFormat -string "### ### ###.##"                                               # number format
+
+# Menu Bar settings
+# Menu bar: hide the AirDrop, AirPlay, AirPlayDisplay, DoNotDisturb, and Sound icons
+for domain in ~/Library/Preferences/ByHost/com.apple.systemuiserver.*; do
+  defaults write "${domain}" dontAutoLoad -array "/System/Library/CoreServices/Menu Extras/AirDrop.menu" \
+  "/System/Library/CoreServices/Menu Extras/AirPlay.menu" "/System/Library/CoreServices/Menu Extras/AirPlayDisplay.menu" \
+  "/System/Library/CoreServices/Menu Extras/DoNotDisturb.menu" "/System/Library/CoreServices/Menu Extras/Sound.menu"
+done
+# Menu bar: show the AirPort, Bluetooth, and Battery icons
+defaults write com.apple.systemuiserver menuExtras -array "/System/Library/CoreServices/Menu Extras/AirPort.menu" \
+"/System/Library/CoreServices/Menu Extras/Bluetooth.menu" "/System/Library/CoreServices/Menu Extras/Battery.menu"
+defaults -currentHost write com.apple.notificationcenterui doNotDisturb -boolean true                                     # enable Do Not Disturb
+defaults write com.apple.controlcenter "NSStatusItem Visible DoNotDisturb" -bool false                                    # hide Do Not Disturb icon by default
+defaults write com.apple.controlcenter "NSStatusItem FocusMode" -bool true                                                # show Focus Mode icon we active
+defaults write com.apple.controlcenter "NSStatusItem Visible AirPlay" -bool false                                         # hide AirPlay icon by default
+defaults write com.apple.controlcenter "NSStatusItem AirPlayMode" -bool true                                              # show AirPlay icon when active
+defaults write com.apple.controlcenter "NSStatusItem Visible AirPlayDisplay" -bool false                                  # hide AirPlay Display icon by default
+defaults write com.apple.controlcenter "NSStatusItem AirPlayDisplayMode" -bool true                                       # show AirPlay Display icon when active
+defaults write com.apple.controlcenter "NSStatusItem Visible Sound" -bool false                                           # hide Sound icon by default
+defaults write com.apple.controlcenter "NSStatusItem SoundMode" -bool true                                                # show Sound icon when active
+defaults write com.apple.menuextra.battery ShowPercent -string "YES"                                                      # show battery percentage
+sudo defaults write /Library/Preferences/com.apple.loginwindow ShowInputMenu -bool false                                  # hide fast user switching icon
+defaults write com.apple.dock autohide-menu-bar-in-fullscreen -bool true                                                  # auto-hide menu bar in full screen
+
+# Dock settings
+defaults write com.apple.dock tilesize -int 36                                                                            # set Dock icon size
+defaults write com.apple.dock magnification -bool true                                                                    # enable dock magnification
+defaults write com.apple.dock largesize -int 96                                                                           # set magnified icon size
+defaults write com.apple.dock orientation -string "right"                                                                 # set Dock orientation to right
+defaults write com.apple.dock mineEffect -string "genie"                                                                  # set minimize effect to genie
+defaults write com.apple.dock minimize-to-application -bool true                                                          # minimize to application
+defaults write com.apple.dock autohide -bool true                                                                         # enable Dock auto-hide
+defaults write com.apple.dock launchanim -bool true                                                                       # enable Dock launch animation
+defaults write com.apple.stageManager enabled -bool false                                                                 # disable Stage Manager
+defaults write com.apple.dock show-process-indicators -bool true                                                          # show indicators for open apps
+defaults write com.apple.dock show-recents -bool false                                                                    # hide recent apps
+
+# Trackpad settings
+defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad Clicking -bool true                                     # enable tap-to-click
+defaults -currentHost write NSGlobalDomain com.apple.mouse.tapBehavior -int 1                                             # enable tap-to-click for login screen
+defaults write NSGlobalDomain com.apple.mouse.tapBehavior -int 1                                                          # enable tap-to-click globally
+defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad ForceClick -bool true                                   # enable Force Click
+defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad HapticFeedback -bool true                               # enable Haptic feedback
+defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad SoftClick -bool true                                    # enable soft click
+defaults write -g com.apple.trackpad.scaling 1.5                                                                          # increase trackpad sensitivity
+defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad TrackpadRightClick -bool true                           # enable right click
+defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad TrackpadTwoFingerClick -bool true                       # enable two-finger right click
+
+# Software Update settings
+sudo softwareupdate --schedule on                                                                                         # enable automatic macOS updates
+sudo defaults write /Library/Preferences/com.apple.SoftwareUpdate AutomaticCheckEnabled -bool true                        # enable check for updates
+sudo defaults write /Library/Preferences/com.apple.SoftwareUpdate AutomaticDownload -bool true                            # enable downloading updates
+sudo defaults write /Library/Preferences/com.apple.SoftwareUpdate AutomaticallyInstallMacOSUpdates -bool true             # enable installing updates
+sudo defaults write /Library/Preferences/com.apple.SoftwareUpdate CriticalUpdateInstall -bool true                        # enable automatic security updates
+defaults write com.apple.commerce AutoUpdate -bool true                                                                   # enable automatic app updates
+defaults write com.apple.SoftwareUpdate ScheduleFrequency -int 1                                                          # check for updates daily
+defaults write com.apple.SoftwareUpdate ConfigDataInstall -int 1                                                          # download apps purchased on other Macs
+defaults write com.apple.commerce AutoUpdateRestartRequired -bool true                                                    # auto restart after update
+
+# Finder settings
+defaults write com.apple.finder AppleShowAllFiles -bool false                                                             # don't show hidden files by default
+defaults write NSGlobalDomain AppleShowAllExtensions -bool true                                                           # show all filename extensions
+defaults write com.apple.finder ShowPathbar -bool true                                                                    # show path bar
+defaults write com.apple.finder FXDefaultSearchScope -string "SCcf"                                                       # search in current folder by default
+defaults write com.apple.finder FXEnableExtensionChangeWarning -bool false                                                # disable change file extension warning
+
+# Apply changes
+killall SystemUIServer                                                                                                    # restart SystemUIServer
+killall Dock                                                                                                              # restart Dock
+killall NotificationCenter                                                                                                # restart NotificationCenter
+killall ControlCenter                                                                                                     # restart ControlCenter
+
+echo "The computer may need to restart for some changes to be reflected."
+{{ end -}}
