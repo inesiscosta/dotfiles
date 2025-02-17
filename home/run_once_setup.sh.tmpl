@@ -26,9 +26,27 @@ fi
 
 # Create Cron Job to Run Brew Upgrade and Update every 14 days and install the formulae and casks in the saved Brewfile.
 (crontab -l 2>/dev/null; echo "0 2 * * * /bin/bash -l -c 'brew update && brew upgrade && brew cleanup'") | crontab - >/dev/null 2>&1
+
 brew update >/dev/null 2>&1
-brew bundle --file={{ .chezmoi.sourceDir }}/../Brewfile --quiet >/dev/null 2>&1
+brew bundle --file={{ .chezmoi.sourceDir }}/../Brewfile &>/dev/null
 brew upgrade >/dev/null 2>&1
+
+ICLOUD_BACKUP="$HOME/Library/Mobile Documents/com~apple~CloudDocs/Documents/Backup"
+mkdir -p "$ICLOUD_BACKUP"
+APP_PREFS_DIR="$ICLOUD_BACKUP/AppPreferences"
+DEV_BACKUP_PATH="$ICLOUD_BACKUP/dev_backup.zip"
+
+# Restore my Developer Folder
+mkdir -p "$HOME/Developer"
+unzip -o "$DEV_BACKUP_PATH" -d "$HOME/Developer" &>/dev/null
+
+
+# Restore my App Preferences
+defaults import com.lwouis.alt-tab-macos "$APP_PREFS_DIR/alttab.plist"
+defaults import com.if.Amphetamine "$APP_PREFS_DIR/amphetamine.plist"
+defaults import pl.maketheweb.cleanshotx "$APP_PREFS_DIR/cleanshotx.plist"
+defaults import com.knollsoft.Rectangle "$APP_PREFS_DIR/rectangle.plist"
+defaults import com.raycast.macos "$APP_PREFS_DIR/raycast.plist"
 
 # macOS config
 {{- if eq .chezmoi.os "darwin" -}}
@@ -126,6 +144,9 @@ killall SystemUIServer                                                          
 killall Dock                                                                                                              # restart Dock
 killall NotificationCenter                                                                                                # restart NotificationCenter
 killall ControlCenter                                                                                                     # restart ControlCenter
+
+# Restore my Dock and Launchpad Preferences
+lporg load --icloud
 
 echo "The computer may need to restart for some changes to be reflected."
 {{ end -}}
