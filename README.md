@@ -2,7 +2,8 @@
 This repository contains the config files I use on macOS, which I manage using Chezmoi. This repository also contains a one line installation script so that I can quickly setup new machines or reconfigure mine after a factory reset. The script will install the apps I use on my system, restore my dotfiles and set some sensible macOS defaults like autohide dock using defaults commands so I don't have to cycle through what feels like endless menus.
 
 ## Installation
-**Warning:** This one line installation is meant for my personal use. It installs the apps I use and includes integration with 1Password where I store secrets like my SSH and Git Signing keys. The script assumes my vault structure so most likely this script won't work for you, however, if you're still interested in trying out some of these dotfiles, I recommend forking the repository, reviewing the code, and removing any parts you don’t need or want. This setup is designed specifically for my macOS workflow and may not be suitable for everyone.
+> [!WARNING]
+> This one line installation is meant for my personal use. It installs the apps I use and includes integration with 1Password where I store secrets like my SSH and Git Signing keys. The script assumes my vault structure so most likely this script won't work for you, however, if you're still interested in trying out some of these dotfiles, I recommend forking the repository, reviewing the code, and removing any parts you don’t need or want. This setup is designed specifically for my macOS workflow and may not be suitable for everyone.
 
 ```shell
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/inesiscosta/dotfiles/main/setup.sh)"
@@ -80,4 +81,5 @@ Amphetamine (937984704) Goodnotes (1444383602) Spark Desktop (6445813049) Xcode 
 
 ## Huge thanks to...
 - [Mathias Bynens](https://mathiasbynens.be/) and [Kevin Suttle](https://kevinsuttle.com/) for their macOS defaults [repositories](https://github.com/kevinSuttle/MacOS-Defaults).
+- [Blacktop](https://blog.blacktop.io) for his amazing [tool](https://github.com/blacktop/lporg) to manage the Dock and Launchpad layouts and preferences. 
 
