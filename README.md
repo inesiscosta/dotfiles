@@ -1,8 +1,8 @@
 # Inês' Dotfiles
-This repository contains the config files I use on macOS, these are managed using chezmoi. This repository also contains a one line installation script so that I can quickly setup new machines or reconfigure mine after a factory reset. The script will install the apps I use on my system, restore my dotfiles and set some sensible macOS defaults like autohide dock using terminal commands so I don't have to cycle through what feels like endless menus.
+This repository contains the config files I use on macOS, which I manage using Chezmoi. This repository also contains a one line installation script so that I can quickly setup new machines or reconfigure mine after a factory reset. The script will install the apps I use on my system, restore my dotfiles and set some sensible macOS defaults like autohide dock using defaults commands so I don't have to cycle through what feels like endless menus.
 
 ## Installation
-**Warning:** This one line installation is meant for my personal use. It installs the apps I use and includes integration with 1Password where I store secrets like my SSH and Git Signing keys assuming my vault structure so most likely this script won't work for you. However, if you're still interested in trying out some of these dotfiles, I recommend forking the repository, reviewing the code, and removing any parts you don’t need or want. This setup is designed specifically for my macOS workflow and may not be suitable for everyone.
+**Warning:** This one line installation is meant for my personal use. It installs the apps I use and includes integration with 1Password where I store secrets like my SSH and Git Signing keys. The script assumes my vault structure so most likely this script won't work for you, however, if you're still interested in trying out some of these dotfiles, I recommend forking the repository, reviewing the code, and removing any parts you don’t need or want. This setup is designed specifically for my macOS workflow and may not be suitable for everyone.
 
 ```shell
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/inesiscosta/dotfiles/main/setup.sh)"
@@ -37,7 +37,7 @@ This repository contains the config files I use on macOS, these are managed usin
 
 This repository includes configurations and automation for the following:
 
-### 🔐 Security & Credentials
+### 🔑 Security & Credentials
 - SSH keys stored in **1Password**
 - GPG private and public keys and trust stored in **1Password**
 - Git signing and commit verification setup
@@ -49,7 +49,7 @@ This repository includes configurations and automation for the following:
 - **Neovim** (`home/dot_config/nvim`)
 - **Tmux** (`home/dot_config/tmux/tmux.conf`)
 
-### 🔄 System & Package Management
+### 💻 System & Package Management
 - **Homebrew** for package management
 - **Brewfile** for automated app installation via `brew bundle`
 - **Chezmoi** for dotfile management and synchronization
@@ -57,19 +57,19 @@ This repository includes configurations and automation for the following:
 
 ### 📦 Installed Packages
 #### Homebrew Packages
-```shell
-bat clang-format coreutils fzf gcc gh git gnupg lizard-analyzer make mas neovim node openjdk rust stow telnet tmux tree zoxide zsh-autosuggestions
-```
+<pre>
+bat chezmoi clang-format coreutils fzf gcc gh git gnupg lizard-analyzer lporg make mas neovim node openjdk rust telnet tmux tree zoxide zsh-autosuggestions
+</pre>
 
 #### Homebrew Casks
-```shell
+<pre>
 1password 1password-cli alacritty alt-tab google-chrome iina keka microsoft-auto-update microsoft-excel microsoft-powerpoint microsoft-word raycast rectangle spotify termius visual-studio-code whatsapp
-```
+</pre>
 
 #### Mac App Store Apps
-```shell
+<pre>
 Amphetamine (937984704) Goodnotes (1444383602) Spark Desktop (6445813049) Xcode (497799835)
-```
+</pre>
 
 ## Roadmap
 - Finish adding some macOS defaults (about 15 missing, mostly related to finder and displays).
@@ -80,3 +80,4 @@ Amphetamine (937984704) Goodnotes (1444383602) Spark Desktop (6445813049) Xcode 
 
 ## Huge thanks to...
 - [Mathias Bynens](https://mathiasbynens.be/) and [Kevin Suttle](https://kevinsuttle.com/) for their macOS defaults [repositories](https://github.com/kevinSuttle/MacOS-Defaults).
+

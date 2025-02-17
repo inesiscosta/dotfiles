@@ -28,7 +28,7 @@ update_or_create "GPG TrustDB" "$TMP_DIR/trust.txt"
 rm -rf "$TMP_DIR"
 
 # Update Brewfile
-BrewfilePath="~/.local/share/chezmoi/Brewfile"
+BrewfilePath="$HOME/.local/share/chezmoi/Brewfile"
 brew bundle dump --file="$BrewfilePath" --force
 
 # Backup my Developer directory to iCloud.
@@ -37,8 +37,23 @@ ZIP_PATH="$HOME/Documents/dev_backup.zip"
 cd "$DEV_DIR"
 zip -r "$ZIP_PATH" . &>/dev/null
 
-if [ -d "$HOME/Library/Mobile Documents/com~apple~CloudDocs/Documents" ]; then
-  mv "$ZIP_PATH" "$HOME/Library/Mobile Documents/com~apple~CloudDocs/Documents/dev_backup.zip"
+ICLOUD_DOCS="$HOME/Library/Mobile Documents/com~apple~CloudDocs/Documents"
+if [ -d "$ICLOUD_DOCS" ]; then
+  mv "$ZIP_PATH" "$ICLOUD_DOCS/Backup/dev_backup.zip"
 fi
 
+# Backup Dock and LaunchPad Preferences
+lporg save --icloud &>/dev/null
+
+# Backup App Preferences
+APP_PREFS_DIR="$ICLOUD_DOCS/Backup/AppPreferences"
+mkdir -p "$APP_PREFS_DIR"
+
+defaults export com.lwouis.alt-tab-macos "$APP_PREFS_DIR/alttab.plist"
+defaults export com.if.Amphetamine "$APP_PREFS_DIR/amphetamine.plist"
+defaults export pl.maketheweb.cleanshotx "$APP_PREFS_DIR/cleanshotx.plist"
+defaults export com.knollsoft.Rectangle "$APP_PREFS_DIR/rectangle.plist"
+defaults export com.raycast.macos "$APP_PREFS_DIR/raycast.plist"
+
 echo "Backup Complete."
+
