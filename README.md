@@ -81,5 +81,5 @@ Amphetamine (937984704) Goodnotes (1444383602) Spark Desktop (6445813049) Xcode 
 
 ## Huge thanks to...
 - [Mathias Bynens](https://mathiasbynens.be/) and [Kevin Suttle](https://kevinsuttle.com/) for their macOS defaults [repositories](https://github.com/kevinSuttle/MacOS-Defaults).
-- [Blacktop](https://blog.blacktop.io) for his amazing [tool](https://github.com/blacktop/lporg) to manage the Dock and Launchpad layouts and preferences. 
+- [Blacktop](https://blog.blacktop.io) for his amazing tool [lporg](https://github.com/blacktop/lporg) used to manage Dock and Launchpad preferences. 
 
