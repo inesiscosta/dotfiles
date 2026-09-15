@@ -1,0 +1,13 @@
+#!/bin/bash
+# Install Homebrew if it's missing. setup.sh normally does this already;
+# this covers running `chezmoi init --apply` directly on a fresh Mac.
+source "{{ .chezmoi.workingTree }}/scripts/lib.sh"
+strict_mode
+
+if brew_env; then
+  exit 0
+fi
+
+log "Installing Homebrew"
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+brew_env || die "Homebrew installed but brew is not on PATH"

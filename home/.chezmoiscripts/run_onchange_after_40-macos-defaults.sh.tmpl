@@ -1,0 +1,7 @@
+#!/bin/bash
+# Apply macOS preferences. Runs again whenever the script or names change.
+# Preview with: make macos-preview
+# Script hash: {{ include "../scripts/macos-defaults.sh" | sha256sum }}
+export COMPUTER_NAME={{ .computerName | shellQuote }}
+export LOCAL_HOST_NAME={{ .localHostName | shellQuote }}
+exec "{{ .chezmoi.workingTree }}/scripts/macos-defaults.sh"

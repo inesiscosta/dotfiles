@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Update and upgrade Homebrew packages at 02:00 on the 1st and 15th of each
+  month (roughly every 14 days). If the Mac is asleep, launchd runs the job
+  when it wakes up.
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>io.github.inesiscosta.brew-upgrade</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>-c</string>
+        <string>/opt/homebrew/bin/brew update &amp;&amp; /opt/homebrew/bin/brew upgrade &amp;&amp; /opt/homebrew/bin/brew cleanup</string>
+    </array>
+    <key>StartCalendarInterval</key>
+    <array>
+        <dict>
+            <key>Day</key><integer>1</integer>
+            <key>Hour</key><integer>2</integer>
+            <key>Minute</key><integer>0</integer>
+        </dict>
+        <dict>
+            <key>Day</key><integer>15</integer>
+            <key>Hour</key><integer>2</integer>
+            <key>Minute</key><integer>0</integer>
+        </dict>
+    </array>
+    <key>StandardOutPath</key>
+    <string>{{ .chezmoi.homeDir }}/Library/Logs/brew-upgrade.log</string>
+    <key>StandardErrorPath</key>
+    <string>{{ .chezmoi.homeDir }}/Library/Logs/brew-upgrade.log</string>
+    <key>ProcessType</key>
+    <string>Background</string>
+    <key>LowPriorityIO</key>
+    <true/>
+</dict>
+</plist>

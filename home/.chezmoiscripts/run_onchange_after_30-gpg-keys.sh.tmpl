@@ -1,0 +1,9 @@
+#!/bin/bash
+# Import GPG signing keys from 1Password on a fresh Mac. Skips itself when the
+# keyring already has secret keys, and never deletes anything from 1Password.
+{{ if eq .gitSigning "gpg" -}}
+exec "{{ .chezmoi.workingTree }}/scripts/restore.sh" --yes gpg
+{{- else -}}
+# gitSigning = {{ .gitSigning | quote }}: commits are signed with SSH, no GPG keys needed.
+exit 0
+{{- end }}

@@ -1,0 +1,4 @@
+{{- /* Targets chezmoi should not manage on this machine. Paths are relative to ~. */ -}}
+{{ if ne .gitSigning "ssh" }}
+.config/git/allowed_signers
+{{ end }}

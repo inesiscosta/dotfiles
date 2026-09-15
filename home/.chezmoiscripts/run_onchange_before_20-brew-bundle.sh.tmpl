@@ -1,0 +1,14 @@
+#!/bin/bash
+# Install everything in the Brewfile. Runs again whenever the Brewfile changes.
+# Brewfile hash: {{ include "../Brewfile" | sha256sum }}
+source "{{ .chezmoi.workingTree }}/scripts/lib.sh"
+strict_mode
+brew_env || die "Homebrew is not installed"
+
+log "Installing Brewfile packages (this can take a while)"
+if ! brew bundle --file="{{ .chezmoi.workingTree }}/Brewfile"; then
+  # Usually a Mac App Store app (sign in to the App Store first) or a cask
+  # needing a password. Don't block the rest of the setup on it.
+  warn "some Brewfile entries failed to install."
+  warn "fix the cause above, then run: brew bundle --file={{ .chezmoi.workingTree }}/Brewfile"
+fi

@@ -1,0 +1,20 @@
+#!/bin/bash
+# (Re)load the LaunchAgent that keeps Homebrew packages up to date.
+# Agent hash: {{ include "Library/LaunchAgents/io.github.inesiscosta.brew-upgrade.plist.tmpl" | sha256sum }}
+source "{{ .chezmoi.workingTree }}/scripts/lib.sh"
+strict_mode
+
+label=io.github.inesiscosta.brew-upgrade
+plist="$HOME/Library/LaunchAgents/$label.plist"
+domain="gui/$(id -u)"
+
+launchctl bootout "$domain/$label" 2>/dev/null || true
+launchctl bootstrap "$domain" "$plist"
+ok "Homebrew auto-update scheduled (log: ~/Library/Logs/brew-upgrade.log)"
+
+# Older versions of this repo added a cron job instead. Remove only that line.
+legacy="brew update && brew upgrade && brew cleanup"
+if crontab -l 2>/dev/null | grep -qF "$legacy"; then
+  crontab -l | grep -vF "$legacy" | crontab -
+  ok "removed the old Homebrew cron job"
+fi

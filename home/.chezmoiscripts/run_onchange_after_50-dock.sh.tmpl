@@ -1,0 +1,5 @@
+#!/bin/bash
+# Set the Dock's apps. Runs again whenever the app list changes.
+# Preview with: make dock-preview
+# Script hash: {{ include "../scripts/dock.sh" | sha256sum }}
+exec "{{ .chezmoi.workingTree }}/scripts/dock.sh"

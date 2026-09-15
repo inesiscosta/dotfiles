@@ -1,0 +1,36 @@
+{{- /*
+  Machine-specific configuration. `chezmoi init` asks each question once and
+  stores the answers in ~/.config/chezmoi/chezmoi.toml. Re-run
+  `chezmoi init --prompt` to change them.
+
+  Every value is also available to the scripts in scripts/ via lib.sh.
+*/ -}}
+
+{{- $computerName := "" -}}
+{{- $localHostName := "" -}}
+{{- if eq .chezmoi.os "darwin" -}}
+{{-   $computerName = output "scutil" "--get" "ComputerName" | trim -}}
+{{-   $localHostName = output "scutil" "--get" "LocalHostName" | trim -}}
+{{- end -}}
+
+{{- $computerName = promptStringOnce . "computerName" "Computer name (shown in Finder and AirDrop)" $computerName -}}
+{{- $localHostName = promptStringOnce . "localHostName" "Local host name (letters, digits, hyphens)" $localHostName -}}
+{{- $gitName := promptStringOnce . "gitName" "Git author name" "Inês Costa" -}}
+{{- $gitEmail := promptStringOnce . "gitEmail" "Git author email" "94355111+inesiscosta@users.noreply.github.com" -}}
+{{- $gitSigning := promptChoiceOnce . "gitSigning" "Git commit signing method" (list "gpg" "ssh") "gpg" -}}
+{{- $gitSigningSSHKey := "" -}}
+{{- if eq $gitSigning "ssh" -}}
+{{-   $gitSigningSSHKey = promptStringOnce . "gitSigningSSHKey" "1Password reference to the SSH signing public key" "op://Private/GitHub SSH Key/public key" -}}
+{{- end -}}
+{{- $backupDir := promptStringOnce . "backupDir" "Backup directory" "~/Library/Mobile Documents/com~apple~CloudDocs/Documents/Backup" -}}
+{{- $backupKeep := promptIntOnce . "backupKeep" "Number of backups to keep of each kind" 3 -}}
+
+[data]
+    computerName = {{ $computerName | quote }}
+    localHostName = {{ $localHostName | quote }}
+    gitName = {{ $gitName | quote }}
+    gitEmail = {{ $gitEmail | quote }}
+    gitSigning = {{ $gitSigning | quote }}
+    gitSigningSSHKey = {{ $gitSigningSSHKey | quote }}
+    backupDir = {{ $backupDir | quote }}
+    backupKeep = {{ $backupKeep }}
