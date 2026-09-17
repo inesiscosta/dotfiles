@@ -1,0 +1,4 @@
+{{- /* Lets `git log --show-signature` verify SSH-signed commits locally. Only used when gitSigning = "ssh". */ -}}
+{{- if eq .gitSigning "ssh" -}}
+{{ .gitEmail }} {{ onepasswordRead .gitSigningSSHKey | trim }}
+{{ end -}}

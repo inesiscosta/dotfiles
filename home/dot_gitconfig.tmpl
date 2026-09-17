@@ -1,7 +1,16 @@
 [user]
-	name = Inês Costa
-	email = 94355111+inesiscosta@users.noreply.github.com
-	signingkey = {{ onepasswordRead "op://Private/GPG/GitSigningKey" }}
+	name = {{ .gitName }}
+	email = {{ .gitEmail }}
+{{- if eq .gitSigning "ssh" }}
+	signingkey = {{ onepasswordRead .gitSigningSSHKey | trim }}
+[gpg]
+	format = ssh
+[gpg "ssh"]
+	program = /Applications/1Password.app/Contents/MacOS/op-ssh-sign
+	allowedSignersFile = ~/.config/git/allowed_signers
+{{- else }}
+	signingkey = {{ onepasswordRead "op://Private/GPG/GitSigningKey" | trim }}
+{{- end }}
 [commit]
 	gpgSign = true
 [init]

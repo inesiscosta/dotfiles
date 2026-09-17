@@ -43,3 +43,9 @@ lines = 80
 x = 8
 y = 28
 
+
+# Shift+Return sends ESC+CR, which CLI tools such as Claude Code read as "newline without submitting".
+[[keyboard.bindings]]
+key = "Return"
+mods = "Shift"
+chars = "\u001B\r"

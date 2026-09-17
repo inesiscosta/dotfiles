@@ -1,1 +1,20 @@
-eval "$(/opt/homebrew/bin/brew shellenv)"
+# ~/.zprofile: login-shell environment (managed by chezmoi).
+
+# Homebrew (Apple Silicon). Also adds Homebrew's zsh completions to fpath.
+if [[ -x /opt/homebrew/bin/brew ]]; then
+  eval "$(/opt/homebrew/bin/brew shellenv zsh)"
+fi
+
+# pyenv shims ahead of Homebrew's python
+if (( $+commands[pyenv] )); then
+  eval "$(pyenv init --path)"
+fi
+
+export PATH="$HOME/.local/bin:$HOME/bin:$PATH"
+
+# Default editor: Vim over SSH, Neovim locally
+if [[ -n "$SSH_CONNECTION" ]]; then
+  export EDITOR="vim"
+else
+  export EDITOR="nvim"
+fi

@@ -1,63 +1,95 @@
-# History Settings
-HISTFILE=$HOME/.zsh_history                           # File where the command history is saved
-HISTSIZE=5000                                         # Number of commands to remember in the command history
-SAVEHIST=5000                                         # Number of history entries to save to the history file
-HISTDUP=erase                                         # Erase duplicates in the history
-HIST_STAMPS="dd/mm/yyyy"                              # Display timestamps in history in the defined format
-setopt appendhistory                                  # Append new history items to the history file
-setopt sharehistory                                   # Share history between all sessions
-setopt incappendhistory                               # Append history incrementally (as commands are typed)
-setopt hist_ignore_all_dups                           # Ignore duplicate commands in the history
-setopt hist_save_no_dups                              # Do not save duplicate commands in the history
-setopt hist_ignore_dups                               # Ignore duplicate commands in the history
-setopt hist_find_no_dups                              # Do not display duplicates when searching the history
+# ~/.zshrc: interactive shell configuration (managed by chezmoi).
 
-autoload -U colors && colors                          # Load color definitions for prompt
-autoload -Uz vcs_info                                 # Load version control system info
+# --- History --------------------------------------------------------------------
+HISTFILE="$HOME/.zsh_history"
+HISTSIZE=10000                                        # Commands kept in memory
+SAVEHIST=10000                                        # Commands saved to HISTFILE
 
-# Prompt
-precmd() {
-  PROMPT="%(?:%{$fg_bold[green]%}%1{➜%} :%{$fg_bold[red]%}%1{➜%} ) %{$fg[cyan]%}%c%{$reset_color%} $(git_prompt_info)"
+setopt SHARE_HISTORY                                  # Write immediately and share across sessions (implies appending)
+setopt HIST_IGNORE_ALL_DUPS                           # Drop older duplicates when a command is repeated
+setopt HIST_SAVE_NO_DUPS                              # Never write duplicates to HISTFILE
+setopt HIST_FIND_NO_DUPS                              # Skip duplicates when searching
+setopt HIST_REDUCE_BLANKS                             # Trim extra spaces before saving
+setopt HIST_VERIFY                                    # Show an expanded !-command before running it
+setopt EXTENDED_HISTORY                               # Save timestamps and durations
+
+# --- Completion -----------------------------------------------------------------
+# Homebrew's completions are added to fpath by `brew shellenv` in ~/.zprofile.
+_zcache="${XDG_CACHE_HOME:-$HOME/.cache}/zsh"
+[[ -d "$_zcache" ]] || mkdir -p "$_zcache"
+zstyle ':completion:*' use-cache on
+zstyle ':completion:*' cache-path "$_zcache"
+zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}' # Case-insensitive completion
+zstyle ':completion:*' menu select                     # Selectable completion menu
+zstyle ':completion:*' rehash true                     # Pick up newly installed commands
+
+# Run compinit's full security check at most once a day; use the cache otherwise.
+autoload -Uz compinit
+() {
+  setopt local_options extended_glob
+  local dump="$_zcache/zcompdump"
+  if [[ ! -s "$dump" || -n "$dump"(#qN.mh+24) ]]; then
+    compinit -d "$dump" && touch "$dump"
+  else
+    compinit -C -d "$dump"
+  fi
 }
+unset _zcache
 
-ZSH_THEME_GIT_PROMPT_PREFIX="%{$fg_bold[blue]%}git:(%{$fg[red]%}"  # Prefix for git info in prompt
-ZSH_THEME_GIT_PROMPT_SUFFIX="%{$reset_color%} "                    # Suffix for git info in prompt
-ZSH_THEME_GIT_PROMPT_DIRTY="%{$fg[blue]%}) %{$fg[yellow]%}%1{✗%}"  # Indicator for dirty state
-ZSH_THEME_GIT_PROMPT_CLEAN="%{$fg[blue]%})"                        # Indicator for clean state
+# --- Prompt ---------------------------------------------------------------------
+# ➜ (green on success, red on failure)  directory  git:(branch) ✗
+autoload -U colors && colors
+setopt PROMPT_SUBST
+
+ZSH_THEME_GIT_PROMPT_PREFIX="%{$fg_bold[blue]%}git:(%{$fg[red]%}"
+ZSH_THEME_GIT_PROMPT_SUFFIX="%{$fg_bold[blue]%})%{$reset_color%}"
+ZSH_THEME_GIT_PROMPT_DIRTY=" %{$fg[yellow]%}✗%{$reset_color%}"
 
 git_prompt_info() {
-  if git rev-parse --is-inside-work-tree &> /dev/null; then
-    local branch=$(git symbolic-ref --short HEAD 2> /dev/null)
-    if [[ -n $(git status --porcelain) ]]; then
-      echo "${ZSH_THEME_GIT_PROMPT_PREFIX}${branch}${ZSH_THEME_GIT_PROMPT_DIRTY}${ZSH_THEME_GIT_PROMPT_SUFFIX}"
-    else
-      echo "${ZSH_THEME_GIT_PROMPT_PREFIX}${branch}${ZSH_THEME_GIT_PROMPT_CLEAN}${ZSH_THEME_GIT_PROMPT_SUFFIX}"
-    fi
+  local branch dirty
+
+  git rev-parse --git-dir &>/dev/null || return
+
+  branch=$(git symbolic-ref --short HEAD 2>/dev/null)
+  [[ -z "$branch" ]] && branch=$(git rev-parse --short HEAD 2>/dev/null) # Detached HEAD
+
+  # Tracked changes only (staged or unstaged); untracked files don't count.
+  git diff --no-ext-diff --quiet --ignore-submodules -- 2>/dev/null || dirty=1
+  [[ -z "$dirty" ]] && { git diff --no-ext-diff --cached --quiet --ignore-submodules -- 2>/dev/null || dirty=1; }
+
+  if [[ -n "$dirty" ]]; then
+    echo " ${ZSH_THEME_GIT_PROMPT_PREFIX}${branch}${ZSH_THEME_GIT_PROMPT_SUFFIX}${ZSH_THEME_GIT_PROMPT_DIRTY}"
+  else
+    echo " ${ZSH_THEME_GIT_PROMPT_PREFIX}${branch}${ZSH_THEME_GIT_PROMPT_SUFFIX}"
   fi
 }
 
-# Case insensitive completion
-zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
+PROMPT='%(?:%{$fg_bold[green]%}➜:%{$fg_bold[red]%}➜)%{$reset_color%} %{$fg_bold[cyan]%}%c%{$reset_color%}$(git_prompt_info) '
 
-# Enable zsh-autosuggestions plugin
-source $(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+# --- Environment ----------------------------------------------------------------
+export GPG_TTY="$TTY"                                 # Let GPG prompt in this terminal ($TTY avoids forking `tty`)
+export CLICOLOR=1                                     # Coloured BSD ls output, only when writing to a terminal
 
-export GPG_TTY=$(tty)                                 # Export GPG settings
-HOMEBREW_BUNDLE_DUMP_NO_VSCODE=1                      # Don't include VSCode extensions when dumping.
+# --- Tools ----------------------------------------------------------------------
+if [[ -n "$HOMEBREW_PREFIX" && -r "$HOMEBREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh" ]]; then
+  source "$HOMEBREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
+fi
 
-# Aliases
-alias cat='bat'
-alias pip='pip3'
-alias gcc='gcc-14'
-alias g++='g++-14'
-alias python='python3'
-alias ls='ls --color'                                 # Enable color output for ls
-alias tmux='tmux -2'                                  # Use tmux with 256-color support
-eval "$(zoxide init --cmd cd zsh)"                    # Mapping zoxide's z command to cd
+# fzf: Ctrl-R history search, Ctrl-T file picker, Alt-C cd. Previews use bat when available.
+if (( $+commands[fzf] )); then
+  if (( $+commands[bat] )); then
+    export FZF_CTRL_T_OPTS="--preview 'bat --color=always --style=numbers --line-range=:200 {}'"
+  fi
+  source <(fzf --zsh)
+fi
 
-# Preferred editor for local and remote sessions
-if [[ -n $SSH_CONNECTION ]]; then
-  export EDITOR='vim'                                 # Use Vim in remote sessions
-else
-  export EDITOR='nvim'                                # Use Neovim in local sessions
+# fnm (Node version manager): switches Node version from .nvmrc/.node-version on cd
+if (( $+commands[fnm] )); then
+  eval "$(fnm env --use-on-cd --shell zsh)"
+fi
+
+# zoxide replaces cd. It must be initialised last so its hooks aren't overridden.
+# (`if` rather than `&&`, so a missing zoxide doesn't make the first prompt red.)
+if (( $+commands[zoxide] )); then
+  eval "$(zoxide init zsh --cmd cd)"
 fi

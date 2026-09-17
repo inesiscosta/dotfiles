@@ -1,2 +1,7 @@
+# Machine-specific hosts live in ~/.ssh/config.local, which chezmoi doesn't
+# manage and which stays out of this public repository. Include must come
+# first so those hosts take precedence over the defaults below.
+Include ~/.ssh/config.local
+
 Host *
 	IdentityAgent "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
