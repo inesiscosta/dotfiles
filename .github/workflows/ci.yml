@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Lint and validate
+    # macOS, so scripts are tested with the stock /bin/bash 3.2 and real
+    # `defaults`, `plutil` and `scutil`, exactly as on a fresh Mac.
+    runs-on: macos-latest
+    env:
+      CI: "true"
+      HOMEBREW_NO_AUTO_UPDATE: "1"
+      HOMEBREW_NO_INSTALL_CLEANUP: "1"
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0 # full history for secret scanning
+
+      - name: Install tools
+        run: brew install shellcheck shfmt chezmoi gitleaks actionlint markdownlint-cli2
+
+      - name: Run checks
+        run: /bin/bash scripts/check.sh
+
+      - name: Bash 3.2 syntax
+        run: for f in setup.sh scripts/*.sh; do /bin/bash -n "$f"; done
+
+      - name: Smoke test (dry run, changes nothing)
+        run: |
+          /bin/bash scripts/macos-defaults.sh --dry-run
+          /bin/bash scripts/doctor.sh || true # informational on a CI runner

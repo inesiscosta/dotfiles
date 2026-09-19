@@ -1,0 +1,10 @@
+# markdownlint-cli2 configuration: https://github.com/DavidAnson/markdownlint-cli2
+config:
+  default: true
+  MD013: false # line length: prose is soft-wrapped
+  MD033: # inline HTML: allow only what GitHub needs for images and collapsibles
+    allowed_elements: [picture, source, img, details, summary, br]
+  MD024:
+    siblings_only: true
+ignores:
+  - "**/node_modules/**"
